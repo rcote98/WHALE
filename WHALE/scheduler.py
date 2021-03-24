@@ -30,7 +30,7 @@ def create_input(fname, geom, settings, run_type="sp"):
         mode    = "SP"
     elif run_type == "opt":
         comment = "# Geometry ORCA input file."
-        mode    = "OPT"
+        mode    = "OPT NUMFREQ"
     else:
         print("Please, choose a compliant run type.")
         exit
@@ -208,12 +208,15 @@ def bsse_correction(folder, geom, settings, monomers):
         pass
 
     os.chdir(base_dir)
+    all_atoms = set(range(geom.nats))
 
     for m in monomers:
 
         run_dir = os.path.join(base_dir, m[0])
-        geom.ghost = np.arange(m[1][0], m[1][1])
-        single_point_run(run_dir, geom, settings)      
+        mon_setts = settings.copy()
+        mon_setts["charge"] = m[2]
+        geom.ghost = all_atoms - set(m[1])
+        single_point_run(run_dir, geom, mon_setts)      
 
     os.chdir(original_dir)
 
