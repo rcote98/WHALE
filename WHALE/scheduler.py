@@ -167,6 +167,9 @@ def optimize_geometry(folder, geom, settings):
     c, m = geometry_run(run_dir, geom, settings)
     geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
+    c = True
+    m = True
+
     while not c:
 
         run += 1
