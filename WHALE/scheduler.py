@@ -30,7 +30,7 @@ def create_input(fname, geom, settings, run_type="sp"):
         mode    = "SP"
     elif run_type == "opt":
         comment = "# Geometry ORCA input file."
-        mode    = "OPT NUMFREQ"
+        mode    = "OPT"
     else:
         print("Please, choose a compliant run type.")
         exit
@@ -97,6 +97,11 @@ def single_point_run(folder, geom, settings):
 
     original_dir = os.getcwd()
     working_dir = os.path.abspath(folder)
+
+    try:
+        os.makedirs(working_dir)
+    except:
+        pass
 
     os.chdir(working_dir)
     create_input("ORCA_run.inp", geom, settings) 
@@ -188,6 +193,25 @@ def optimize_geometry(folder, geom, settings):
 
     os.chdir(original_dir)
 
-def bsse_correction(folder, geom, settings):
+def bsse_correction(folder, geom, settings, monomers):
 
-    pass
+    # add prints and shit
+    original_dir = os.getcwd()
+    base_dir = os.path.abspath(folder)
+
+    try:
+        os.makedirs(folder)
+    except:
+        pass
+
+    os.chdir(base_dir)
+
+    for m in monomers:
+
+        run_dir = os.path.join(base_dir, m[0])
+        geom.ghost = np.arange(m[1][0], m[1][1])
+        single_point_run(run_dir, geom, settings)      
+
+    os.chdir(original_dir)
+
+    return True
