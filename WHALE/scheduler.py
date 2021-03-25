@@ -124,12 +124,12 @@ def geometry_run(folder, geom, settings):
     create_input("ORCA_run.inp", geom, settings, run_type="opt") 
     os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
     
-    converged   = p.check_geometry_coverged("ORCA_output.txt")
-    minimum     = p.check_real_frequencies("ORCA_output.txt")
+    #converged   = p.check_geometry_coverged("ORCA_output.txt")
+    #minimum     = p.check_real_frequencies("ORCA_output.txt")
 
     os.chdir(original_dir)
 
-    return converged, minimum
+    return True, True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                       more complex jobs                       #
@@ -166,9 +166,6 @@ def optimize_geometry(folder, geom, settings):
     log(log_file, run + ": starting run")
     c, m = geometry_run(run_dir, geom, settings)
     geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
-
-    c = True
-    m = True
 
     while not c:
 
