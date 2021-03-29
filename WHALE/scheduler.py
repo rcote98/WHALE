@@ -23,7 +23,7 @@ def log(log_file, message):
 #                         simple jobs                           #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def create_input(fname, geom, settings, run_type="sp"):
+def create_input(fname, geom, settings, run_type="sp", inc_ghost=True):
 
     if run_type == "sp" or run_type == "energy":
         comment = "# Single point ORCA input file."
@@ -85,15 +85,16 @@ def create_input(fname, geom, settings, run_type="sp"):
         tsv.writerow(["* xyz ", charge, spin])
 
         for i in range(geom.nats):
-            if i in geom.ghost:
+            if (i in geom.ghost) and inc_ghost:
                 line = [geom.species[i] + ":"] + ["{:10.8F}".format(d) for d in geom.positions[i,:]]
-            else:
+                tsv.writerow(line)
+            if (i not in geom.ghost):
                 line = [geom.species[i]] + ["{:10.8F}".format(d) for d in geom.positions[i,:]]
-            tsv.writerow(line)
+                tsv.writerow(line)
 
         tsv.writerow(["*"])
 
-def single_point_run(folder, geom, settings):
+def single_point_run(folder, geom, settings, inc_ghost=True):
 
     original_dir = os.getcwd()
     working_dir = os.path.abspath(folder)
@@ -104,7 +105,7 @@ def single_point_run(folder, geom, settings):
         pass
 
     os.chdir(working_dir)
-    create_input("ORCA_run.inp", geom, settings) 
+    create_input("ORCA_run.inp", geom, settings, inc_ghost=inc_ghost) 
     os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
     os.chdir(original_dir)
 
@@ -209,11 +210,19 @@ def bsse_correction(folder, geom, settings, monomers):
 
     for m in monomers:
 
-        run_dir = os.path.join(base_dir, m[0])
         mon_setts = settings.copy()
         mon_setts["charge"] = m[2]
+        mon_setts["solvent"] = None
         geom.ghost = all_atoms - set(m[1])
-        single_point_run(run_dir, geom, mon_setts)      
+
+        # full basis
+        run_dir = os.path.join(base_dir, m[0] + "-f_basis")
+        single_point_run(run_dir, geom, mon_setts)  
+
+        # reduced basis
+        run_dir = os.path.join(base_dir, m[0] + "-r_basis")
+        geom.ghost = all_atoms - set(m[1])
+        single_point_run(run_dir, geom, mon_setts, inc_ghost=False)  
 
     os.chdir(original_dir)
 
