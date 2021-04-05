@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import re
 
+# auxiliary funcs
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def remove_prefix(text, prefix):
@@ -15,6 +16,7 @@ def generate_lines_that_match(string, fp):
         if re.search(string, line):
             yield line
 
+# checks
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def check_geometry_coverged(fname):
@@ -43,9 +45,8 @@ def check_real_frequencies(fname):
     
     return True
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #    
-
 # energies
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def parse_scf_energy(fname):
 
@@ -86,6 +87,7 @@ def parse_solvent_correction(fname):
         return None
 
 # frequencies
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def parse_frequencies(fname):
 
@@ -153,8 +155,48 @@ def parse_normal_modes(fname):
     return normal_modes
 
 # masses
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 def parse_masses(fname):
     pass
 
+# thermochem
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+def parse_ZPE(fname):
+
+    last_ZPE = 0
+    with open(fname, "r") as f:
+        string = "(ZPE)"
+        for l in generate_lines_that_match(string, f):
+            last_ZPE = l
+
+    return float(last_ZPE.split()[3])
+
+def parse_internal_energy_thermal_correction(fname):
+
+    with open(fname, "r") as f:
+        string = "Total thermal correction"
+        for l in generate_lines_that_match(string, f):
+            last_inner = l
+
+    return float(last_inner.split()[3])
+
+def parse_enthalpy_thermal_correction(fname):
+
+    with open(fname, "r") as f:
+        string = "Thermal Enthalpy correction"
+        for l in generate_lines_that_match(string, f):
+            last_enthalpy = l
+
+    return float(last_enthalpy.split()[4])
+
+
+def parse_entropy_thermal(fname):
+
+    with open(fname, "r") as f:
+        string = "Final entropy term"
+        for l in generate_lines_that_match(string, f):
+            last_entropy = l
+
+    return float(last_entropy.split()[4])
