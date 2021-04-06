@@ -161,9 +161,8 @@ def optimize_geometry(folder, geom, settings):
         pass
 
     os.chdir(base_dir)
-    rn = 0
 
-    def perturb_geometry(folder, scaling=0.5):
+    def perturb_geometry(folder, scaling=1):
 
         g = Geometry()
         g.read_xyz(os.path.join(folder, "ORCA_run.xyz"))
@@ -174,34 +173,32 @@ def optimize_geometry(folder, geom, settings):
         return g, im_mode
 
     # optimize the geometry
-    run = f"run{rn}"
-    run_dir = os.path.join(base_dir, run)
-    log(log_file, run + ": starting run")
+    run_num = 0
+    run_dir = os.path.join(base_dir, f"run{run_num}")
+    log(log_file, f"run{run_num}: starting run")
     c, m = geometry_run(run_dir, geom, settings)
     geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
     while not c:
 
-        run += 1
-        run = f"run{rn}"
-        log(log_file, run + ": attempting to reach convergence")
-        c, m = geometry_run(run, geom, settings)
-        geom.read_xyz(os.path.join(base_dir, run, "ORCA_run.xyz"))
+        run_num += 1
+        run_dir = os.path.join(base_dir, f"run{run_num}")
+        log(log_file, f"run{run_num}: attempting to reach convergence")
+        c, m = geometry_run(run_dir, geom, settings)
+        geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
     while not m:
 
-        geom, im = perturb_geometry(os.path.join(base_dir, run))
+        geom, im = perturb_geometry(os.path.join(base_dir, run_dir))
 
-        run +=1
-        run = f"run{rn}"
-        log(log_file, run + f": correcting imaginary mode {im}")
-        c, m = geometry_run(run, geom, settings)
-        geom.read_xyz(os.path.join(base_dir, run, "ORCA_run.xyz"))
+        run_num += 1
+        run_dir = os.path.join(base_dir, f"run{run_num}")
+        log(log_file, f"run{run_num}: correcting imaginary mode {im}")
+        c, m = geometry_run(run_dir, geom, settings)
+        geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
     geom.write_xyz(os.path.join(base_dir, "ORCA_run.xyz"))
-    final = os.path.abspath(run)
-
-    copyfile(os.path.join(final, "ORCA_output.txt"), 
+    copyfile(os.path.join(run_dir, "ORCA_output.txt"), 
     os.path.join(base_dir, "ORCA_output.txt"))
 
     os.chdir(original_dir)
