@@ -21,13 +21,20 @@ def generate_lines_that_match(string, fp):
 
 def check_geometry_coverged(fname):
 
+    converged = False
     with open(fname, "r") as f:
-        pattern = "THE OPTIMIZATION HAS CONVERGED"
-        for _ in generate_lines_that_match(pattern, f):
-            return True
-    return False
+        string = "THE OPTIMIZATION HAS CONVERGED"
+        for _ in generate_lines_that_match(string, f):
+            converged = True
+    return converged
+
 
 def check_real_frequencies(fname):
+
+    conv = check_geometry_coverged(fname)
+
+    if not conv:
+        return None
 
     vibrations = False
     with open(fname, "r") as f:
@@ -39,7 +46,7 @@ def check_real_frequencies(fname):
         return None
 
     with open(fname, "r") as f:
-        pattern = "***imaginary mode***"
+        pattern = "imaginary mode"
         for _ in generate_lines_that_match(pattern, f):
             return False
     
@@ -67,7 +74,7 @@ def parse_dispersion_correction(fname):
     try:
         return float(last_energy.split()[2])
     except:
-        return None
+        return 0
 
 def parse_solvent_correction(fname):
 
@@ -84,7 +91,7 @@ def parse_solvent_correction(fname):
     try:
         return float(last_charge.split()[2]), float(last_free.split()[3])
     except:
-        return None
+        return 0, 0
 
 # frequencies
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

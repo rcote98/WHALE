@@ -23,7 +23,7 @@ def log(log_file, message):
 #                         simple jobs                           #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def create_input(fname, geom, settings, run_type="sp", inc_ghost=True):
+def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=200):
 
     if run_type == "sp" or run_type == "energy":
         comment = "# Single point ORCA input file."
@@ -71,6 +71,13 @@ def create_input(fname, geom, settings, run_type="sp", inc_ghost=True):
         tsv.writerow(["!", method, addons, basis])
         tsv.writerow(["!", mode])
         tsv.writerow([" "])
+
+        if run_type == "opt":
+            tsv.writerow([r"%GEOM"])
+            tsv.writerow([f"    maxiter    {str(max_iter)}"])
+            tsv.writerow(["end"])
+            tsv.writerow([" "])
+
 
         if solvent != None:
             tsv.writerow(["%CPCM"])
@@ -125,8 +132,8 @@ def geometry_run(folder, geom, settings):
     create_input("ORCA_run.inp", geom, settings, run_type="opt") 
     os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
     
-    #converged   = p.check_geometry_coverged("ORCA_output.txt")
-    #minimum     = p.check_real_frequencies("ORCA_output.txt")
+    converged   = p.check_geometry_coverged("ORCA_output.txt")
+    minimum     = p.check_real_frequencies("ORCA_output.txt")
 
     os.chdir(original_dir)
 
@@ -145,6 +152,11 @@ def optimize_geometry(folder, geom, settings):
     
     try:
         os.makedirs(folder)
+    except:
+        pass
+
+    try:
+        os.remove(log_file)
     except:
         pass
 
