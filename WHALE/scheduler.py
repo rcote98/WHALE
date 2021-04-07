@@ -132,12 +132,13 @@ def geometry_run(folder, geom, settings):
     create_input("ORCA_run.inp", geom, settings, run_type="opt") 
     os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
     
+    ended       = p.check_errors("ORCA_output.txt")
     converged   = p.check_geometry_coverged("ORCA_output.txt")
     minimum     = p.check_real_frequencies("ORCA_output.txt")
 
     os.chdir(original_dir)
 
-    return converged, minimum
+    return ended, converged, minimum
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                       more complex jobs                       #
@@ -176,27 +177,38 @@ def optimize_geometry(folder, geom, settings):
     run_num = 0
     run_dir = os.path.join(base_dir, f"run{run_num}")
     log(log_file, f"run{run_num}: starting run")
-    c, m = geometry_run(run_dir, geom, settings)
+    e, c, m = geometry_run(run_dir, geom, settings)
     geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
-    while not c:
+    while (not e) or (not c) or (not m):
 
-        run_num += 1
-        run_dir = os.path.join(base_dir, f"run{run_num}")
-        log(log_file, f"run{run_num}: attempting to reach convergence")
-        c, m = geometry_run(run_dir, geom, settings)
-        geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
+        if not e:
 
-    while not m:
+            log(log_file, f"run{run_num}: error occurred, repeating run")
+            e, c, m = geometry_run(run_dir, geom, settings)
+            geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
-        geom, im = perturb_geometry(os.path.join(base_dir, run_dir))
+        if not c:
 
-        run_num += 1
-        run_dir = os.path.join(base_dir, f"run{run_num}")
-        log(log_file, f"run{run_num}: correcting imaginary mode {im}")
-        c, m = geometry_run(run_dir, geom, settings)
-        geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
+            run_num += 1
+            run_dir = os.path.join(base_dir, f"run{run_num}")
+            
+            log(log_file, f"run{run_num}: geometry not converged, restarting from last geometry")
+            e, c, m = geometry_run(run_dir, geom, settings)
+            geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
+        if not m:
+
+            geom, im = perturb_geometry(run_dir)
+
+            run_num += 1
+            run_dir = os.path.join(base_dir, f"run{run_num}")
+            log(log_file, f"run{run_num}: correcting imaginary mode {im}")
+            c, m = geometry_run(run_dir, geom, settings)
+            geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+        
     geom.write_xyz(os.path.join(base_dir, "ORCA_run.xyz"))
     copyfile(os.path.join(run_dir, "ORCA_output.txt"), 
     os.path.join(base_dir, "ORCA_output.txt"))

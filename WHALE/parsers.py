@@ -19,6 +19,15 @@ def generate_lines_that_match(string, fp):
 # checks
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+def check_errors(fname):
+
+    everything_fine = True
+    with open(fname, "r") as f:
+        string = "non-zero exit code. Per user-direction"
+        for _ in generate_lines_that_match(string, f):
+            everything_fine = False
+    return everything_fine
+
 def check_geometry_coverged(fname):
 
     converged = False
@@ -51,6 +60,8 @@ def check_real_frequencies(fname):
             return False
     
     return True
+
+    
 
 # energies
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
