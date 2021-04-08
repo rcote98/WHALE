@@ -138,7 +138,7 @@ def geometry_run(folder, geom, settings):
 
     os.chdir(original_dir)
 
-    return ended, converged, minimum
+    return ended, converged, True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                       more complex jobs                       #
