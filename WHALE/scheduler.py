@@ -63,6 +63,11 @@ def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=
     except:
         solvent = None
 
+    try:
+        basis_specs = settings["basis_specs"]
+    except:
+        basis_specs = None
+
     with open(fname, "w") as f:
 
         tsv = csv.writer(f, delimiter="\t")
@@ -87,6 +92,14 @@ def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=
             tsv.writerow(["END"])
             tsv.writerow([" "])
 
+        if basis_specs != None:
+            tsv.writerow(["%BASIS"])
+            for b in basis_specs:
+                f.write(f'    NEWGTO {b[0]} "{b[1]}" END\n')
+            tsv.writerow(["END"])
+            tsv.writerow([" "])
+
+        
         tsv.writerow(["%PAL NPROCS", nproc, "END"])
         tsv.writerow([" "])
         tsv.writerow(["* xyz ", charge, spin])
@@ -135,10 +148,11 @@ def geometry_run(folder, geom, settings):
     ended       = p.check_errors("ORCA_output.txt")
     converged   = p.check_geometry_coverged("ORCA_output.txt")
     minimum     = p.check_real_frequencies("ORCA_output.txt")
+    minimum     = True
 
     os.chdir(original_dir)
 
-    return ended, converged, True
+    return ended, converged, minimum
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                       more complex jobs                       #
@@ -204,7 +218,7 @@ def optimize_geometry(folder, geom, settings):
             run_num += 1
             run_dir = os.path.join(base_dir, f"run{run_num}")
             log(log_file, f"run{run_num}: correcting imaginary mode {im}")
-            c, m = geometry_run(run_dir, geom, settings)
+            _, m = geometry_run(run_dir, geom, settings)
             geom.read_xyz(os.path.join(run_dir, "ORCA_run.xyz"))
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
