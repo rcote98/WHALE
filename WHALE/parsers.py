@@ -172,11 +172,39 @@ def parse_normal_modes(fname):
 
     return normal_modes
 
-# masses
+# charges
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def parse_masses(fname):
-    pass
+def parse_charges(fname):
+    
+    charges = []
+    volumes = []
+    with open(fname, "r") as f:
+    
+        found = False
+        while not found:
+            line = f.readline()
+            string = "The atomic charges after normalization"
+            if re.search(string, line):
+                found = True
+
+        while True:
+
+            line = f.readline()
+            line = line.split()
+
+            if line == []:
+                break
+
+            for i, el in enumerate(line):
+
+                if el == "Charge:":
+                    charges.append(float(line[i+1]))
+
+                if el == "Volume:":
+                    volumes.append(float(line[i+1]))
+
+    return charges, volumes
 
 # thermochem
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -209,6 +237,14 @@ def parse_enthalpy_thermal_correction(fname):
 
     return float(last_enthalpy.split()[4])
 
+def parse_trans_entropy_thermal(fname):
+
+    with open(fname, "r") as f:
+        string = "Translational entropy"
+        for l in generate_lines_that_match(string, f):
+            last_entropy = l
+
+    return float(last_entropy.split()[3])
 
 def parse_entropy_thermal(fname):
 

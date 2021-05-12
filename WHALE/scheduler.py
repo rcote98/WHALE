@@ -6,6 +6,7 @@ import numpy as np
 import os, csv
 
 ORCA_EXEC = os.getenv("ORCA_EXEC", default = None) 
+MWFN_EXEC = os.getenv("MWFN_EXEC", default = None) 
 
 def log(log_file, message):
 
@@ -23,7 +24,7 @@ def log(log_file, message):
 #                         simple jobs                           #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=200):
+def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=400):
 
     if run_type == "sp" or run_type == "energy":
         comment = "# Single point ORCA input file."
@@ -31,6 +32,9 @@ def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=
     elif run_type == "opt":
         comment = "# Geometry ORCA input file."
         mode    = "OPT NUMFREQ"
+    elif run_type == "numfreq":
+        comment = "# Numerical Frequencies ORCA input file."
+        mode    = "NUMFREQ"
     else:
         print("Please, choose a compliant run type.")
         exit
@@ -78,11 +82,11 @@ def create_input(fname, geom, settings, run_type="sp", inc_ghost=True, max_iter=
         tsv.writerow([" "])
 
         if run_type == "opt":
+            tsv.writerow(["! TightOpt"])
             tsv.writerow([r"%GEOM"])
-            tsv.writerow([f"    maxiter    {str(max_iter)}"])
+            tsv.writerow([f"maxiter    {str(max_iter)}"])
             tsv.writerow(["end"])
             tsv.writerow([" "])
-
 
         if solvent != None:
             tsv.writerow(["%CPCM"])
@@ -131,6 +135,22 @@ def single_point_run(folder, geom, settings, inc_ghost=True):
 
     return True
 
+def mwfn_run(folder, wf_file, inp_file):
+
+    original_dir = os.getcwd()
+    working_dir = os.path.abspath(folder)
+
+    try:
+        os.makedirs(working_dir)
+    except:
+        pass
+
+    os.chdir(working_dir)
+    os.system(MWFN_EXEC + " " + wf_file + " < " + inp_file + " > MWFN_output.txt &> /dev/null")
+    os.chdir(original_dir)
+
+    return True
+
 def geometry_run(folder, geom, settings):
 
     original_dir = os.getcwd()
@@ -153,6 +173,24 @@ def geometry_run(folder, geom, settings):
     os.chdir(original_dir)
 
     return ended, converged, minimum
+
+def frequency_run(folder, geom, settings):
+
+    original_dir = os.getcwd()
+    working_dir = os.path.abspath(folder)
+
+    try:
+        os.makedirs(working_dir)
+    except:
+        pass
+
+    os.chdir(working_dir)
+    create_input("ORCA_run.inp", geom, settings, run_type="numfreq") 
+    os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
+    
+    os.chdir(original_dir)
+
+    return True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 #                       more complex jobs                       #
