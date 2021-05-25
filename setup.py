@@ -23,5 +23,4 @@ setup(name='WHALE',
       packages=find_packages(),
       zip_safe=False,
       python_requires='>=3.6'
-      
     )
