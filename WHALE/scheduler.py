@@ -166,7 +166,7 @@ def geometry_run(folder, geom, settings):
     os.system(ORCA_EXEC + " " + "ORCA_run.inp > ORCA_output.txt")
     
     ended       = p.check_errors("ORCA_output.txt")
-    converged   = p.check_geometry_coverged("ORCA_output.txt")
+    converged   = p.check_geometry_converged("ORCA_output.txt")
     minimum     = p.check_real_frequencies("ORCA_output.txt")
     minimum     = True
 
