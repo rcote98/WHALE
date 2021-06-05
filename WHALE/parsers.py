@@ -28,7 +28,7 @@ def check_errors(fname):
             everything_fine = False
     return everything_fine
 
-def check_geometry_coverged(fname):
+def check_geometry_converged(fname):
 
     converged = False
     with open(fname, "r") as f:
@@ -40,7 +40,7 @@ def check_geometry_coverged(fname):
 
 def check_real_frequencies(fname):
 
-    conv = check_geometry_coverged(fname)
+    conv = check_geometry_converged(fname)
 
     if not conv:
         return None
